@@ -25,4 +25,5 @@ jobs:
 
       # Format check only — fails if files are not formatted
       - name: Ruff format check
+        working-directory: apps/backend
         run: uvx ruff format --check .

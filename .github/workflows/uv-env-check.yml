@@ -27,4 +27,5 @@ jobs:
 
       # The authoritative guard: MUST match uv.lock and Python markers
       - name: Sync (frozen)
+        working-directory: apps/backend
         run: uv sync --frozen

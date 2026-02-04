@@ -26,4 +26,5 @@ jobs:
 
       # Lint: exits non-zero on violations -> job fails
       - name: Ruff lint
+        working-directory: apps/backend
         run: uvx ruff check --output-format=github .
