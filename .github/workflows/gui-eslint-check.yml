@@ -22,12 +22,12 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: 'GUI/package-lock.json'
-          
+          cache-dependency-path: 'apps/gui/src/research_pal/package-lock.json'
+
       - name: Install dependencies
-        working-directory: ./GUI
+        working-directory: ./apps/gui/src/research_pal
         run: npm install --legacy-peer-deps
-        
+
       - name: Lint code
-        working-directory: ./GUI
-        run: npx eslint "src/**/*.{ts,tsx}" --quiet
+        working-directory: ./apps/gui/src/research_pal
+        run: npm run lint

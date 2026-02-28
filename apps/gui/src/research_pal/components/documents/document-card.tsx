@@ -17,16 +17,16 @@ interface DocumentCardProps {
   onChat: () => void;
 }
 
-function getFileIcon(fileType: Document['fileType']) {
+function FileIcon({ fileType, className }: { fileType: Document['fileType']; className?: string }) {
   switch (fileType) {
     case 'pdf':
-      return FileText;
+      return <FileText className={className} />;
     case 'image':
-      return Image;
+      return <Image className={className} />;
     case 'word':
-      return FileType;
+      return <FileType className={className} />;
     default:
-      return FileText;
+      return <FileText className={className} />;
   }
 }
 
@@ -37,15 +37,13 @@ function formatFileSize(bytes: number): string {
 }
 
 export function DocumentCard({ document, onDelete, onChat }: DocumentCardProps) {
-  const Icon = getFileIcon(document.fileType);
-
   return (
     <Card className="p-6">
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3">
-            <Icon className="h-8 w-8 flex-shrink-0 text-muted-foreground" />
+            <FileIcon fileType={document.fileType} className="h-8 w-8 flex-shrink-0 text-muted-foreground" />
             <div className="space-y-1">
               <h3 className="font-semibold line-clamp-1">{document.title}</h3>
               <p className="text-xs text-muted-foreground">{document.fileName}</p>
