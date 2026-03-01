@@ -70,10 +70,9 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
 
     set({ uploads: [...get().uploads, ...newUploads] });
 
-    // Upload each file
-    for (const file of files) {
-      const uploadState = newUploads.find((u) => u.fileName === file.name);
-      if (!uploadState) continue;
+    // Upload each file — iterate by index to avoid collisions on duplicate file names
+    for (const [index, uploadState] of newUploads.entries()) {
+      const file = files[index];
 
       try {
         // TODO: Replace with actual API call

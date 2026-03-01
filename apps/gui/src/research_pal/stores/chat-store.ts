@@ -13,8 +13,8 @@ interface ChatStore {
   setSelectedPapers: (ids: string[]) => void;
   setSelectedDocuments: (ids: string[]) => void;
   sendMessage: (content: string) => Promise<void>;
-  appendStreamChunk: (chunk: string) => void;
-  addCitation: (citation: SourceCitation) => void;
+  appendStreamChunk: (messageId: string, chunk: string) => void;
+  addCitation: (messageId: string, citation: SourceCitation) => void;
   clearChat: () => void;
   setRecording: (isRecording: boolean) => void;
   stopStreaming: () => void;
@@ -38,7 +38,10 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   sendMessage: async (content: string) => {
-    const { selectedPaperIds, selectedDocumentIds } = get();
+    const { isStreaming, selectedPaperIds, selectedDocumentIds } = get();
+
+    // Prevent concurrent sends — a stream is already in flight
+    if (isStreaming) return;
 
     if (!content.trim() || (selectedPaperIds.length === 0 && selectedDocumentIds.length === 0)) {
       return;
@@ -95,13 +98,13 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       const words = mockResponse.split(' ');
       for (let i = 0; i < words.length; i++) {
         await new Promise((resolve) => setTimeout(resolve, 50));
-        get().appendStreamChunk(words[i] + ' ');
+        get().appendStreamChunk(assistantMessage.id, words[i] + ' ');
       }
 
       // Add mock citation
       if (selectedPaperIds.length > 0) {
         await new Promise((resolve) => setTimeout(resolve, 200));
-        get().addCitation({
+        get().addCitation(assistantMessage.id, {
           paperId: selectedPaperIds[0],
           paperTitle: 'Attention Is All You Need',
           section: 'Section 3',
@@ -118,38 +121,22 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
   },
 
-  appendStreamChunk: (chunk: string) => {
-    const messages = get().messages;
-    const lastMessage = messages[messages.length - 1];
-
-    if (lastMessage && lastMessage.role === 'assistant') {
-      set({
-        messages: [
-          ...messages.slice(0, -1),
-          {
-            ...lastMessage,
-            content: lastMessage.content + chunk,
-          },
-        ],
-      });
-    }
+  appendStreamChunk: (messageId: string, chunk: string) => {
+    set({
+      messages: get().messages.map((m) =>
+        m.id === messageId ? { ...m, content: m.content + chunk } : m
+      ),
+    });
   },
 
-  addCitation: (citation: SourceCitation) => {
-    const messages = get().messages;
-    const lastMessage = messages[messages.length - 1];
-
-    if (lastMessage && lastMessage.role === 'assistant') {
-      set({
-        messages: [
-          ...messages.slice(0, -1),
-          {
-            ...lastMessage,
-            citations: [...(lastMessage.citations || []), citation],
-          },
-        ],
-      });
-    }
+  addCitation: (messageId: string, citation: SourceCitation) => {
+    set({
+      messages: get().messages.map((m) =>
+        m.id === messageId
+          ? { ...m, citations: [...(m.citations || []), citation] }
+          : m
+      ),
+    });
   },
 
   clearChat: () => {
